@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:myapp/search.dart';
 import 'package:myapp/mercari.dart';
 import 'package:myapp/paypayfleama.dart';
 import 'package:preload_page_view/preload_page_view.dart';
-import 'package:myapp/search.dart';
 
 void main() {
   runApp(const MyApp());
@@ -34,31 +34,44 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
+  final ValueNotifier<String> _searchQueryNotifier = ValueNotifier<String>('');
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text("フリマ横断検索"),
+        title: Text(widget.title), // widget.title を使用
       ),
       body: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
         Expanded(
           child: PreloadPageView(
-            preloadPagesCount: 2,
+            preloadPagesCount: 3,
             controller: PreloadPageController(initialPage: 0),
             onPageChanged: (int position) {
               debugPrint('page changed current: $position');
             },
-            // Search() is a widget that allows you to search for items on Mercari and PayPay Flea Market.
-            children: const [
-              Search(),
-              Mercari(),
-              Paypayfleama(),
+            children: [
+              Search(searchQueryNotifier: _searchQueryNotifier),
+              Mercari(searchQueryNotifier: _searchQueryNotifier),
+              Paypayfleama(searchQueryNotifier: _searchQueryNotifier),
             ],
           ))
           // TextFormField(),
       ],)
+      // body: Center(
+      //   child: Column(
+      //     mainAxisAlignment: MainAxisAlignment.center,
+      //     children: <Widget>[
+      //     ],
+      //   ),
+      // ),
     );
+  }
+
+  @override
+  void dispose() {
+    _searchQueryNotifier.dispose();
+    super.dispose();
   }
 }

@@ -4,7 +4,9 @@ import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 
 class Mercari extends StatefulWidget {
-  const Mercari({super.key});
+  final ValueNotifier<String> searchQueryNotifier;
+
+  const Mercari({super.key, required this.searchQueryNotifier});
 
   @override
   State<Mercari> createState() => _MercariState();
@@ -12,7 +14,7 @@ class Mercari extends StatefulWidget {
 
 class _MercariState extends State<Mercari> {
   late final WebViewController _controller;
-  String _title = "";
+  // String _title = ""; // UI上で使用されていないためコメントアウトまたは削除
   @override
   void initState() {
     super.initState();
@@ -43,8 +45,6 @@ class _MercariState extends State<Mercari> {
           },
           onPageFinished: (String url) async {
             debugPrint('Page finished loading: $url');
-            _title = await controller.runJavaScriptReturningResult('document.title;') as String;
-            debugPrint(_title);
             //debugPrint(await controller.runJavaScriptReturningResult('document.documentElement.scrollHeight;') as String);
           },
           onUrlChange: (UrlChange change) {
@@ -61,7 +61,8 @@ class _MercariState extends State<Mercari> {
         },
       )
       ..setUserAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.62 Safari/537.36")
-      ..loadRequest(Uri.parse("https://jp.mercari.com/"));
+      // 初期ロードは _loadPageWithQuery で行う
+      ;
 
     // #docregion platform_features
     if (controller.platform is AndroidWebViewController) {
@@ -70,28 +71,44 @@ class _MercariState extends State<Mercari> {
     }
     // #enddocregion platform_features
     _controller = controller;
+
+    // ValueNotifierのリスナーを設定
+    widget.searchQueryNotifier.addListener(_onSearchQueryChanged);
+    // 初期ページの読み込み
+    _loadPageWithQuery(widget.searchQueryNotifier.value);
+  }
+
+  void _onSearchQueryChanged() {
+    _loadPageWithQuery(widget.searchQueryNotifier.value);
+  }
+
+  void _loadPageWithQuery(String query) {
+    String url;
+    if (query.isNotEmpty) {
+      url = 'https://jp.mercari.com/search?keyword=${Uri.encodeComponent(query)}';
+    } else {
+      url = "https://jp.mercari.com/";
+    }
+    _controller.loadRequest(Uri.parse(url));
   }
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
+    // Scaffoldは不要。MyHomePageのPreloadPageView内で使用されるため。
+    return Column( // 必要に応じてこのColumnも削除可能
+      children: [
         Expanded(
-          child: SingleChildScrollView(
-            scrollDirection: Axis.vertical,
-            child: SizedBox(
-              //width: double.infinity,
-              height: 2500,
-              child: Transform.scale(
-                alignment: Alignment.topLeft,
-                scale: 1.0,
-                child: WebViewWidget(layoutDirection: TextDirection.ltr, controller: _controller),
-              ),
-            ),
-          ),
+          child: WebViewWidget(controller: _controller),
         ),
-        TextFormField(),
-      ]),
+        // TextFormField(), // 目的が不明なためコメントアウト
+      ],
     );
+  }
+
+  @override
+  void dispose() {
+    widget.searchQueryNotifier.removeListener(_onSearchQueryChanged);
+    // _controllerのdisposeはWebViewWidgetが行うため、通常は不要
+    super.dispose();
   }
 }
