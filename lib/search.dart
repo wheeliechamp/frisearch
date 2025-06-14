@@ -9,23 +9,36 @@ class Search extends StatefulWidget {
 
 class _SearchState extends State<Search> {
   final TextEditingController _searchController = TextEditingController();
-  List<String> _searchResults = [];
+  // ListViewに表示するサンプルデータ
+  final List<String> _items = List.generate(30, (index) => 'アイテム ${index + 1}');
+  List<String> _filteredItems = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _filteredItems = _items; // 初期状態では全てのアイテムを表示
+  }
 
   void _performSearch(String query) {
-    // In a real application, you would perform your search logic here.
-    // For this example, we'll just simulate some results.
-    List<String> results = [];
-    if (query.isNotEmpty) {
-      results = List.generate(5, (index) => "Result for '$query' ${index + 1}");
+    if (query.isEmpty) {
+      setState(() {
+        _filteredItems = _items;
+      });
+    } else {
+      setState(() {
+        _filteredItems = _items
+            .where((item) => item.toLowerCase().contains(query.toLowerCase()))
+            .toList();
+      });
     }
-    setState(() {
-      _searchResults = results;
-    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('検索画面'),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -36,7 +49,8 @@ class _SearchState extends State<Search> {
                   child: TextField(
                     controller: _searchController,
                     decoration: const InputDecoration(
-                      hintText: 'Enter your search query',
+                      hintText: '検索キーワードを入力...',
+                      border: OutlineInputBorder(),
                     ),
                   ),
                 ),
@@ -52,9 +66,11 @@ class _SearchState extends State<Search> {
             const SizedBox(height: 16.0),
             Expanded(
               child: ListView.builder(
-                itemCount: _searchResults.length,
+                itemCount: _filteredItems.length,
                 itemBuilder: (context, index) {
-                  return ListTile(title: Text(_searchResults[index]));
+                  return ListTile(
+                    title: Text(_filteredItems[index]),
+                  );
                 },
               ),
             ),
@@ -63,5 +79,10 @@ class _SearchState extends State<Search> {
       ),
     );
   }
-}
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+}
