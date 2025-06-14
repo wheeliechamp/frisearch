@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:myapp/mercari.dart';
 import 'package:myapp/paypayfleama.dart';
 import 'package:preload_page_view/preload_page_view.dart';
+import 'package:myapp/search.dart';
 
 void main() {
   runApp(const MyApp());
@@ -49,20 +50,15 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             onPageChanged: (int position) {
               debugPrint('page changed current: $position');
             },
+            // Search() is a widget that allows you to search for items on Mercari and PayPay Flea Market.
             children: const [
+              Search(),
               Mercari(),
               Paypayfleama(),
             ],
           ))
           // TextFormField(),
       ],)
-      // body: Center(
-      //   child: Column(
-      //     mainAxisAlignment: MainAxisAlignment.center,
-      //     children: <Widget>[
-      //     ],
-      //   ),
-      // ),
     );
   }
 }
