@@ -87,6 +87,7 @@ class _MercariState extends State<Mercari> {
     if (query.isNotEmpty) {
       url = 'https://jp.mercari.com/search?keyword=${Uri.encodeComponent(query)}';
     } else {
+      debugPrint('Mercari: Loading default URL because query is empty.');
       url = "https://jp.mercari.com/";
     }
     _controller.loadRequest(Uri.parse(url));
